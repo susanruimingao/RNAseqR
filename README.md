@@ -47,14 +47,8 @@ To run the RNA-Seq pipeline, there are five main steps are involved, using gener
 
 The default RawReads format suffixNameR1 = "_R1.fastq.gz",suffixNameR2 = "_R2.fastq.gz". Otherwise, specifiy as following:
 
-The example format of the prepared meta file
-isolate	repeat	description
-23344-1	23344-Bio1	WTstd_23344
-23344-2	23344-Bio2	WTstd_23344
-23344-3	23344-Bio3	WTstd_23344
-DD3008-1	DD3008-Bio1	DD3008
-DD3008-2	DD3008-Bio2	DD3008
-DD3008-3	DD3008-Bio3	DD3008
+The prepared metadata file ID names need to match the ID of raw reads.
+
 
 ```
 RNA-SeqR::trimExpressionStatisticsCtsTableDEGs(inputDir = "/isilon/cfia-ottawa-fallowfield/users/gaoru/Bmallei_RNA-seq/RNA-Seq_practice", 
