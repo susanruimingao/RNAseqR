@@ -19,6 +19,7 @@ library(RColorBrewer)
 library(mixOmics)
 library(magrittr)
 library(data.table)
+library(devtools)
 
 trimReads = function(inputDir,
                      outputDir = "trimmedReads",
@@ -327,25 +328,25 @@ trimExpressionStatisticsCtsTableDEGs <- function(inputDir,
                                                  output = "rsem_index",
                                                  reference = "rsem_index",
                                                  ...){
-  trimReads(inputDir = inputDir,
+  RNASEQ::trimReads(inputDir = inputDir,
             outputDir = "trimmedReads",
             suffixNameR1 = suffixNameR1, #must be these forms; _R1.fastq.gz, _1.fastq.gz, _R1.fq.gz, _1.fq.gz;,
             suffixNameR2 = suffixNameR2,
             nThreads = nThreads);
   
-  prepareIndex(transcriptome = transcriptome,
+  RNASEQ::prepareIndex(transcriptome = transcriptome,
                output = output)  
   
-  expressionValue(trimmedReadsDir = "trimmedReads",
+  RNASEQ::expressionValue(trimmedReadsDir = "trimmedReads",
                   outputDir = "rsemValueOut",                    
                   nMemory = nMemory, #memory in GB;
                   reference = output,
                   nThreads = nThreads);
   
-  statistics_rsem(inputDir = "rsemValueOut",
+  RNASEQ::statistics_rsem(inputDir = "rsemValueOut",
                   suffix = ".genes.results");
   
-  countsTableDEGs(inputDir = "rsemValueOut",
+  RNASEQ::countsTableDEGs(inputDir = "rsemValueOut",
                   suffix = ".genes.results",
                   outputDir = "CtsDEGOut",
                   metaData = metaData);
