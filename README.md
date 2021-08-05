@@ -28,10 +28,6 @@ install.packages("data.table")
 install.packages("devtools")
 install.packages("readr")
 ```
-```
-R
-```
-
 After installing the required software and R packages, install the final RNASEQ package
 ``` 
 library(devtools)
@@ -46,9 +42,10 @@ library(edgeR)
 library(RColorBrewer)
 library(mixOmics)
 library(magrittr)
-library("data.table")
-library("devtools")
-library("readr")
+library(data.table)
+library(devtools)
+library(readr)
+library(RNASEQ)
 ```
 
 To run the RNA-Seq pipeline, there are five main steps are involved, using general function: including trim reads, gene reads mapping and expression, statistics (mdsplot), counts table and differential expressed genes (DEGs)
