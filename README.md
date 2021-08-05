@@ -7,12 +7,11 @@ In a terminal, conda create a "DEGs" environment and install three software fast
 codna create –n DEGs –c bioconda fastp rsem
 
 ```
-Go to work directory containing raw reads, and the reads name is preferred in "_R1.fastq.gz"/"_R2.fastq.gz"; otherwise specify in the command line.
-Go to R environment and install three required packages, which will be needed to be installed once.  
+Go to work directory containing raw reads;
+Go to R environment and install the following required packages, which will be needed to be installed once.  
 
-Download RNA-SeqR codes from https://github.com/susanruimingao/RNAseqR.git
 
-in R, install the required packages and load necessary packages
+in R, install the required packages and it only needs to install once
 
 ```
 R
@@ -26,7 +25,19 @@ BiocManager::install("edgeR")
 BiocManager::install("csaw")
 BiocManager::install("mixOmics")
 install.packages("data.table")
+install.packages("devtools")
+install.packages("readr")
 ```
+```
+R
+```
+
+After installing the required software and R packages, install the final RNASEQ package
+``` 
+library(devtools)
+devtools::install_github("susanruimingao/RNAseqR")
+```
+Load the required package each time before running your job
 ```
 library(tximportData)
 library(tximport)
@@ -36,11 +47,8 @@ library(RColorBrewer)
 library(mixOmics)
 library(magrittr)
 library("data.table")
-```
-
-Every time for enterring the R envrionment, the above downloaded RNA-SeqR_0.1.0.tar.gz package need to be installed
-``` 
-install.packages("/home/CFIA-ACIA/gaoru/R_package/RNA-SeqR_0.1.0.tar.gz", repos = NULL, type="source")
+library("devtools")
+library("readr")
 ```
 
 To run the RNA-Seq pipeline, there are five main steps are involved, using general function: including trim reads, gene reads mapping and expression, statistics (mdsplot), counts table and differential expressed genes (DEGs)
@@ -51,7 +59,7 @@ The prepared metadata file ID names need to match the ID of raw reads.
 
 
 ```
-RNA-SeqR::trimExpressionStatisticsCtsTableDEGs(inputDir = "/isilon/cfia-ottawa-fallowfield/users/gaoru/Bmallei_RNA-seq/RNA-Seq_practice", 
+RNASEQ::trimExpressionStatisticsCtsTableDEGs(inputDir = "/isilon/cfia-ottawa-fallowfield/users/gaoru/Bmallei_RNA-seq/RNA-Seq_practice", 
                          suffixNameR1 = "_R1.fastq.gz", 
                          suffixNameR2 = "_R2.fastq.gz",
                          transcriptome = "Bm_atcc23344cDNA.fa", 
