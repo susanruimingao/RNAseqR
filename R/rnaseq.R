@@ -20,6 +20,7 @@ library(mixOmics)
 library(magrittr)
 library(data.table)
 library(devtools)
+library(stringr)
 
 trimReads = function(inputDir,
                      outputDir = "trimmedReads",
@@ -232,6 +233,8 @@ countsTableDEGs = function(inputDir = "rsemValueOut",
                            suffix = ".genes.results",
                            #outputDir = "CtsDEGOut",
                            metaData,
+                           cutoff = 1,
+                           adjPValue = 0.05,
                            ...){
   # #create output file;
   # if(!dir.exists(outputDir)){
@@ -273,7 +276,7 @@ countsTableDEGs = function(inputDir = "rsemValueOut",
   d0 <- DGEList(counts)
   d0 <- calcNormFactors(d0)
   
-  cutoff <- 1
+  cutoff <- cutoff;
   drop <- which(apply(cpm(d0), 1, max) < cutoff)
   d <- d0[-drop,] 
   #dim(d) # number of genes left
@@ -284,7 +287,8 @@ countsTableDEGs = function(inputDir = "rsemValueOut",
   plotMDS(d, col = as.numeric(group))
   dev.off()
   
-  mm <- model.matrix(~0 + group)
+  mm <- model.matrix(~0 + group);
+  colnames(mm) <- str_remove(colnames(mm), "group")
   pdf(file="voom.pdf", width = 10, height = 6);
   y <- voom(d, mm, plot = T)
   dev.off()
@@ -296,22 +300,32 @@ countsTableDEGs = function(inputDir = "rsemValueOut",
   fit <- lmFit(y, mm)
   #head(coef(fit))
   
-  contr <- makeContrasts(groupDD3008 - groupWTstd_23344, levels = colnames(coef(fit)))
+  grpIn <- colnames(mm);
   
-  tmp <- contrasts.fit(fit, contr)
-  
-  tmp <- eBayes(tmp)
-  
-  top.table <- topTable(tmp, sort.by = "P", n = Inf)
-  #head(top.table, 20)
-  
-  length(which(top.table$adj.P.Val < 0.05))
-  filDEG <- length(which(top.table$adj.P.Val < 0.05))
-  #view(filDEG)
-  
-  top.table %>%
-    dplyr::filter(adj.P.Val < 0.05) %>%
-    write.table(file = "filDEG_DD3008_WT23344.txt", row.names = F, sep = "\t", quote = F)
+  comb <- combn(grpIn, 2) %>% as.data.frame();
+  for(i in ncol(comb)){
+    r1 <- comb[[i]][1] %>% as.character();
+    r2 <- comb[[i]][2] %>% as.character();
+    contst <- paste0(r1, " - ", r2);
+    contr <- makeContrasts(contrasts = contst, levels = colnames(coef(fit)));
+    tmp <- contrasts.fit(fit, contr)
+    
+    tmp <- eBayes(tmp)
+    
+    top.table <- topTable(tmp, sort.by = "P", n = Inf)
+    #head(top.table, 20)
+    
+    #length(which(top.table$adj.P.Val < adjPValue))
+    filDEG <- length(which(top.table$adj.P.Val < adjPValue))
+    #view(filDEG)
+    
+    top.table %>%
+      dplyr::filter(adj.P.Val < adjPValue) %>%
+      write.table(file = past0("filDEG_", r1, "_", r2, ".txt"), 
+                  row.names = F, 
+                  sep = "\t", 
+                  quote = F)
+  }
 }
 
 #countsTableDEGs(inputDir = "/isilon/cfia-ottawa-fallowfield/users/gaoru/Bmallei_RNA-seq/RNA-Seq_practice/rsemValueOut",
@@ -327,27 +341,31 @@ trimExpressionStatisticsCtsTableDEGs <- function(inputDir,
                                                  metaData,
                                                  output = "rsem_index",
                                                  reference = "rsem_index",
+                                                 cutoff = 1,#minimum reads for each gene
+                                                 adjPValue = 0.05, #for fold change adj p value
                                                  ...){
   RNASEQ::trimReads(inputDir = inputDir,
-            outputDir = "trimmedReads",
-            suffixNameR1 = suffixNameR1, #must be these forms; _R1.fastq.gz, _1.fastq.gz, _R1.fq.gz, _1.fq.gz;,
-            suffixNameR2 = suffixNameR2,
-            nThreads = nThreads);
+                    outputDir = "trimmedReads",
+                    suffixNameR1 = suffixNameR1, #must be these forms; _R1.fastq.gz, _1.fastq.gz, _R1.fq.gz, _1.fq.gz;,
+                    suffixNameR2 = suffixNameR2,
+                    nThreads = nThreads);
   
   RNASEQ::prepareIndex(transcriptome = transcriptome,
-               output = output)  
+                       output = output)  
   
   RNASEQ::expressionValue(trimmedReadsDir = "trimmedReads",
-                  outputDir = "rsemValueOut",                    
-                  nMemory = nMemory, #memory in GB;
-                  reference = output,
-                  nThreads = nThreads);
+                          outputDir = "rsemValueOut",                    
+                          nMemory = nMemory, #memory in GB;
+                          reference = output,
+                          nThreads = nThreads);
   
   RNASEQ::statistics_rsem(inputDir = "rsemValueOut",
-                  suffix = ".genes.results");
+                          suffix = ".genes.results");
   
   RNASEQ::countsTableDEGs(inputDir = "rsemValueOut",
-                  suffix = ".genes.results",
-                  outputDir = "CtsDEGOut",
-                  metaData = metaData);
+                          suffix = ".genes.results",
+                          outputDir = "CtsDEGOut",
+                          metaData = metaData,
+                          cutoff = cutoff,
+                          adjPValue = adjPValue);
 }
